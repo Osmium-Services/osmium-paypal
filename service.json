@@ -1,0 +1,69 @@
+{
+    "id": "paypal",
+    "name": "PayPal",
+    "version": "1.0.0",
+    "description": "Takes PayPal payments at checkout (Orders v2, server-side capture), with a signature-verified webhook to reconcile orders. Appears as a payment provider in Settings > Payments",
+    "author": {
+        "name": "Gavin Cox"
+    },
+    "license": "proprietary",
+    "requires": {
+        "osmium": ">=1.0.0",
+        "php": ">=8.1",
+        "services": []
+    },
+    "autoload": [
+        "models"
+    ],
+    "hooks": {
+        "payment.providers": [
+            "Osmium\\Services\\PayPal\\Models\\PayPalPaymentProvider::provider"
+        ],
+        "payment.create": [
+            "Osmium\\Services\\PayPal\\Models\\PayPalPaymentProvider::create"
+        ],
+        "payment.confirm": [
+            "Osmium\\Services\\PayPal\\Models\\PayPalPaymentProvider::confirm"
+        ]
+    },
+    "csp": {
+        "script-src": [
+            "https://www.paypal.com"
+        ],
+        "frame-src": [
+            "https://www.paypal.com"
+        ]
+    },
+    "admin": {
+        "menu": {
+            "section": "Content",
+            "items": [
+                {
+                    "id": "paypal",
+                    "label": "PayPal",
+                    "icon": "bx bx-credit-card",
+                    "route": "admin/settings/paypal",
+                    "activePattern": "admin/settings/paypal",
+                    "role": null
+                }
+            ]
+        },
+        "routes": {
+            "admin/settings/paypal": {
+                "controller": "controllers/PayPalController.php",
+                "class": "Osmium\\Services\\PayPal\\Controllers\\PayPalController",
+                "method": "index",
+                "title": "PayPal"
+            }
+        }
+    },
+    "api": {
+        "routes": {
+            "api/checkout-paypal-webhook": "controllers/paypal-webhook.php"
+        }
+    },
+    "setup": {
+        "requiresConnection": true,
+        "postInstallNote": "PayPal is off until configured. Enter your client IDs and secrets on the PayPal settings page, create a webhook in the PayPal developer dashboard pointing at /api/checkout-paypal-webhook (events: PAYMENT.CAPTURE.COMPLETED, PAYMENT.CAPTURE.DENIED, PAYMENT.CAPTURE.REFUNDED) and paste its Webhook ID. Then choose PayPal as the Active Checkout Provider in Settings > Payments."
+    }
+}
