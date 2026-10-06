@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Osmium\Services\PayPal\Models;
 
+use Osmium\Core\Library\StoreFinance;
+
 use Osmium\Core\Library\Cache;
 use Osmium\Modules\Checkout\Services\ShopPaymentException;
 
@@ -66,14 +68,15 @@ class PayPalClient
      * @param array $order Stored order row (order_ref, addresses, name)
      * @param array $totals Server-computed totals
      * @param array $lines Basket lines, already priced
+     * @param StoreFinance $finance The store's country: every order ships there (UK-only for now)
      * @return string PayPal's order id
      * @throws ShopPaymentException
      */
-    public function createOrder(array $order, array $totals, array $lines): string
+    public function createOrder(array $order, array $totals, array $lines, StoreFinance $finance): string
     {
         $body = [
             'intent' => 'CAPTURE',
-            'purchase_units' => [$this->buildPurchaseUnit(order: $order, totals: $totals, lines: $lines)],
+            'purchase_units' => [$this->buildPurchaseUnit(order: $order, totals: $totals, lines: $lines, finance: $finance)],
             'payment_source' => [
                 'paypal' => [
                     'experience_context' => [
@@ -197,9 +200,9 @@ class PayPalClient
      * ShopTotalsService takes VAT per unit rather than on the rounded line
      * total precisely so the second rule holds for any quantity.
      */
-    private function buildPurchaseUnit(array $order, array $totals, array $lines): array
+    private function buildPurchaseUnit(array $order, array $totals, array $lines, StoreFinance $finance): array
     {
-        $currency = (string)($order['currency'] ?? 'GBP');
+        $currency = (string)$order['currency'];
 
         $items = [];
         $itemTotal = 0.0;
@@ -250,7 +253,7 @@ class PayPalClient
                     'admin_area_2' => $this->truncate((string)$order['delivery_city'], 120),
                     'admin_area_1' => $this->truncate((string)($order['delivery_county'] ?? ''), 300) ?: null,
                     'postal_code' => (string)$order['delivery_postcode'],
-                    'country_code' => 'GB',
+                    'country_code' => $finance->country(),
                 ], fn($v) => $v !== null),
             ],
         ];

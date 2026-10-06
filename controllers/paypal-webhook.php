@@ -56,12 +56,14 @@ $resource = $event['resource'] ?? [];
 
 $sqlDir = 'app/modules/checkout/models/sql/';
 
+$finance = $this->osmium->finance();
 $basketService = new CheckoutBasketService(dataSource: $this->osmium->dataSource, sqlDir: $sqlDir);
 $orderService = new ShopOrderService(
     dataSource: $this->osmium->dataSource,
     sqlDir: $sqlDir,
     basket: $basketService,
-    totals: ShopTotalsService::fromConfig($this->osmium->config->checkout),
+    totals: ShopTotalsService::fromConfig($this->osmium->config->checkout, $finance),
+    finance: $finance,
 );
 
 /**
@@ -105,7 +107,7 @@ switch ($eventType) {
 
         \error_log("PayPal webhook completed order {$order['order_ref']} that the browser did not confirm"); // Worth knowing about: it means a customer saw an error on a payment that actually succeeded
 
-        $mailer = new ShopOrderMailer($this->osmium->config);
+        $mailer = new ShopOrderMailer($this->osmium->config, $finance);
         $mailer->sendOrderConfirmation($orderService->getOrder($orderId), $invoiceNumber);
         break;
 
