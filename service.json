@@ -1,7 +1,7 @@
 {
     "id": "paypal",
     "name": "PayPal",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Takes PayPal payments at checkout (Orders v2, server-side capture), with a signature-verified webhook to reconcile orders. Appears as a payment provider in Settings > Payments",
     "category": "payments",
     "author": {
@@ -11,7 +11,8 @@
     "requires": {
         "osmium": ">=1.0.0",
         "php": ">=8.1",
-        "services": []
+        "services": [],
+        "shop": true
     },
     "autoload": [
         "models"
