@@ -6,6 +6,7 @@ use Osmium\Modules\Checkout\Models\CheckoutDiscount;
 use Osmium\Modules\Checkout\Models\CheckoutOrder;
 use Osmium\Modules\Checkout\Services\CheckoutBasketService;
 use Osmium\Modules\Checkout\Services\ShopOrderMailer;
+use Osmium\Modules\Checkout\Services\ShopCaptureCheck;
 use Osmium\Modules\Checkout\Services\ShopDiscountService;
 use Osmium\Modules\Checkout\Services\ShopOrderService;
 use Osmium\Modules\Checkout\Services\ShopTotalsService;
@@ -17,6 +18,7 @@ require_once __DIR__ . '/../../../modules/checkout/services/ShopOrderService.php
 require_once __DIR__ . '/../../../modules/checkout/services/ShopOrderMailer.php';
 require_once __DIR__ . '/../../../modules/checkout/services/ShopPaymentException.php';
 require_once __DIR__ . '/../../../modules/checkout/services/ShopDiscountService.php';
+require_once __DIR__ . '/../../../modules/checkout/services/ShopCaptureCheck.php';
 require_once __DIR__ . '/../../../modules/checkout/models/CheckoutModel.php';
 require_once __DIR__ . '/../../../modules/checkout/models/CheckoutBasket.php';
 require_once __DIR__ . '/../../../modules/checkout/models/CheckoutDiscount.php';
@@ -100,10 +102,32 @@ if (!$order) {
     exit;
 }
 
+// A PayPal event may only act on an order that was paid through PayPal
+$notPayPalOrder = ($order['payment_provider'] ?? '') !== 'paypal';
+if ($notPayPalOrder) {
+    \error_log('PayPal webhook ' . $eventType . ' matched order ' . $order['order_ref'] . ', which was not paid through PayPal');
+    \http_response_code(200); // Acknowledged: retrying will not change which provider the order belongs to
+    exit;
+}
+
 $orderId = (int)$order['id'];
 
 switch ($eventType) {
     case 'PAYMENT.CAPTURE.COMPLETED':
+        // The same check the browser path makes: a capture that does not match the order we priced is not marked
+        // paid, it is left pending for a human.
+        $capture = [
+            'amount' => (float)($resource['amount']['value'] ?? 0),
+            'currency' => (string)($resource['amount']['currency_code'] ?? ''),
+            'status' => \strtolower((string)($resource['status'] ?? '')),
+        ];
+        $captureOutcome = ShopCaptureCheck::outcome($order, $capture);
+        if ($captureOutcome !== ShopCaptureCheck::COMPLETED) {
+            \error_log("PayPal webhook capture for order {$order['order_ref']} is {$captureOutcome}: {$capture['amount']} {$capture['currency']} {$capture['status']}, expected {$order['total_inc_tax']} {$order['currency']}");
+            \http_response_code(200); // Acknowledged: retrying will not fix a mismatch
+            exit;
+        }
+
         $invoiceNumber = $orderService->markPaid(
             orderId: $orderId,
             captureRef: (string)($resource['id'] ?? ''),
