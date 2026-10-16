@@ -1,6 +1,7 @@
 <?php
 
 use Osmium\Services\PayPal\Models\PayPalConfig;
+use Osmium\Services\PayPal\Models\PayPalRefund;
 use Osmium\Modules\Checkout\Models\CheckoutBasket;
 use Osmium\Modules\Checkout\Models\CheckoutDiscount;
 use Osmium\Modules\Checkout\Models\CheckoutOrder;
@@ -148,6 +149,22 @@ switch ($eventType) {
         break;
 
     case 'PAYMENT.CAPTURE.REFUNDED':
+        // Sent for every refund, part or full, and it carries only that refund's amount. Read the order back from
+        // PayPal for the running total; if that fails, fall back to this refund alone (which can only under-count).
+        $refundedTotal = (float)($resource['amount']['value'] ?? 0);
+        try {
+            $paypalOrder = $paypal->getOrder((string)($resource['supplementary_data']['related_ids']['order_id'] ?? ''));
+            $refundedTotal = \max($refundedTotal, PayPalRefund::refundedTotal($paypalOrder));
+        } catch (\Throwable $e) {
+            \error_log("PayPal refund lookup failed for order {$order['order_ref']}: " . $e->getMessage());
+        }
+
+        $isFullRefund = PayPalRefund::isFull(refundedTotal: $refundedTotal, orderTotal: (float)$order['total_inc_tax']);
+        if (!$isFullRefund) {
+            \error_log("PayPal partial refund on order {$order['order_ref']}: {$refundedTotal} of {$order['total_inc_tax']} {$order['currency']}; status left as it is");
+            break;
+        }
+
         $orderService->markStatus(orderId: $orderId, status: 'refunded'); // Recorded, not executed — refunds are issued in PayPal
         break;
 
