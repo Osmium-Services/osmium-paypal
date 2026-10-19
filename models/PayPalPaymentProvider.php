@@ -46,7 +46,7 @@ class PayPalPaymentProvider
             order: $payload['order'],
             totals: $payload['totals'],
             lines: $payload['totals']['lines'],
-            finance: $payload['osmium']->finance(),
+            finance: \Osmium\Core\Library\StoreFinance::forOsmium($payload['osmium']),
         );
 
         return ['ref' => $ref, 'test_mode' => $client->isSandbox()];
