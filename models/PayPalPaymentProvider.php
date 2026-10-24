@@ -25,6 +25,10 @@ class PayPalPaymentProvider
             'id' => self::ID,
             'label' => 'PayPal',
             'logo' => '/assets/services/paypal/logo.png', // Shown next to the order in admin
+            'paymentUrl' => [ // The logo links here; {capture_ref} is PayPal's capture id
+                'test' => 'https://www.sandbox.paypal.com/activity/payment/{capture_ref}',
+                'live' => 'https://www.paypal.com/activity/payment/{capture_ref}',
+            ],
             'ready' => $client->isEnabled(),
             'frontend' => ['clientId' => $client->clientId()], // Public by design; the JS SDK needs it
             'settingsRoute' => 'settings/paypal/',
