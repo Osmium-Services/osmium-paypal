@@ -24,6 +24,7 @@ class PayPalPaymentProvider
         return [
             'id' => self::ID,
             'label' => 'PayPal',
+            'logo' => '/assets/services/paypal/logo.png', // Shown next to the order in admin
             'ready' => $client->isEnabled(),
             'frontend' => ['clientId' => $client->clientId()], // Public by design; the JS SDK needs it
             'settingsRoute' => 'settings/paypal/',
