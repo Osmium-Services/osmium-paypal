@@ -1,10 +1,11 @@
 {
     "id": "paypal",
     "name": "PayPal",
-    "version": "1.4.4",
+    "version": "1.4.5",
     "description": "Takes PayPal payments at checkout (Orders v2, server-side capture), with a signature-verified webhook to reconcile orders. Appears as a payment provider in Settings > Payments",
     "category": "payments",
     "website": "https://www.paypal.com",
+    "account": {"required": "free", "note": "Free to open; fees are charged per payment."},
     "author": {
         "name": "Gavin Cox"
     },
