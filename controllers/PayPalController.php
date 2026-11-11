@@ -42,6 +42,8 @@ class PayPalController extends AdminController
         $config = (array) PayPalConfig::get();
 
         $this->data['admin']['paypal'] = [
+            'supportedMethods' => PayPalConfig::SUPPORTED_METHODS,
+            'acceptedMethods' => PayPalConfig::acceptedMethods(),
             'enabled' => (bool) $config['enabled'],
             'mode' => $config['mode'],
             'brandName' => $config['brandName'],
@@ -78,6 +80,7 @@ class PayPalController extends AdminController
         }
 
         $values['enabled'] = isset($_POST['enabled']);
+        $values['acceptedMethods'] = \array_values(\array_intersect(\array_keys(PayPalConfig::SUPPORTED_METHODS), (array) ($_POST['accepted_methods'] ?? [])));
         $values['mode'] = ($_POST['mode'] ?? '') === 'live' ? 'live' : 'sandbox';
         $values['brandName'] = \mb_substr(string: \trim((string) ($_POST['brand_name'] ?? '')), start: 0, length: 127);
 

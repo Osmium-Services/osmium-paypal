@@ -62,6 +62,17 @@
                     <?php endforeach; ?>
 
                     <div class="mb-3">
+                        <label class="form-label fw-semibold">Accepted payment types</label>
+                        <?php foreach ($admin['paypal']['supportedMethods'] as $methodId => $methodLabel): ?>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="method-<?= $methodId ?>" name="accepted_methods[]" value="<?= $methodId ?>" <?= \in_array($methodId, $admin['paypal']['acceptedMethods'], true) ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="method-<?= $methodId ?>"><?= \htmlspecialchars($methodLabel) ?></label>
+                            </div>
+                        <?php endforeach; ?>
+                        <div class="form-text">Shown as payment badges on the site. Cards are offered by PayPal as guest checkout when your PayPal account allows it.</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="brand_name" class="form-label fw-semibold">Brand Name</label>
                         <input type="text" class="form-control" id="brand_name" name="brand_name"
                             maxlength="127" value="<?= \htmlspecialchars($paypal['brandName']) ?>">

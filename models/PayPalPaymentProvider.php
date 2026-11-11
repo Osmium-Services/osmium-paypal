@@ -31,6 +31,7 @@ class PayPalPaymentProvider
             ],
             'ready' => $client->isEnabled(),
             'frontend' => ['clientId' => $client->clientId()], // Public by design; the JS SDK needs it
+            'methods' => PayPalConfig::acceptedMethods(), // Shown as payment badges by the theme
             'settingsRoute' => 'settings/paypal/',
         ];
     }
