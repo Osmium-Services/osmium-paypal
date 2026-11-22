@@ -74,6 +74,7 @@
     },
     "setup": {
         "requiresConnection": true,
+        "configuredCheck": "Osmium\\Services\\PayPal\\Models\\PayPalConfig::isConfigured",
         "postInstallNote": "PayPal is off until configured. Enter your client IDs and secrets on the PayPal settings page, create a webhook in the PayPal developer dashboard pointing at /api/checkout-paypal-webhook (events: PAYMENT.CAPTURE.COMPLETED, PAYMENT.CAPTURE.DENIED, PAYMENT.CAPTURE.REFUNDED) and paste its Webhook ID. Then choose PayPal as the Active Checkout Provider in Settings > Payments."
     }
 }
