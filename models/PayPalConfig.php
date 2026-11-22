@@ -74,7 +74,7 @@ class PayPalConfig
     }
 
     /**
-     * True when the credentials for the active mode (client ID and secret) and the webhook ID are all set.
+     * True when the credentials for the active mode (client ID and secret) are set.
      * The admin Services list uses this to drop its "Needs configuring" badge.
      */
     public static function isConfigured(): bool
@@ -83,9 +83,8 @@ class PayPalConfig
         $prefix = ($config->mode ?? 'sandbox') === 'live' ? 'live' : 'sandbox';
         $clientId = \trim((string) ($config->{$prefix . 'ClientId'} ?? ''));
         $secret = \trim((string) ($config->{$prefix . 'Secret'} ?? ''));
-        $webhookId = \trim((string) ($config->webhookId ?? ''));
 
-        return $clientId !== '' && $secret !== '' && $webhookId !== '';
+        return $clientId !== '' && $secret !== '';
     }
 
     public static function client(): PayPalClient
