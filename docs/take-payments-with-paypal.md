@@ -1,6 +1,7 @@
 ---
 title: Take payments with PayPal
 tags: paypal, payments, checkout, webhook, sandbox, live
+page: admin/settings/paypal
 ---
 
 **PayPal** lets customers pay with PayPal at checkout. Cards are offered by PayPal as guest checkout when your PayPal account allows it.
